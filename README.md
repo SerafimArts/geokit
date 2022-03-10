@@ -1,14 +1,23 @@
 Geokit
 ======
 
+This is fork of 1.x branch of [https://github.com/nickdnk/geokit](nickdnk/geokit)
+compatible with PHP 8.0+.
+
+<p align="center">
+    <a href="https://github.com/SerafimArts/geokit/actions"><img src="https://github.com/SerafimArts/geokit/workflows/build/badge.svg"></a>
+    <a href="https://packagist.org/packages/serafim/geokit"><img src="https://img.shields.io/badge/PHP-8.0.0-ff0140.svg"></a>
+    <a href="https://packagist.org/packages/serafim/geokit"><img src="https://poser.pugx.org/serafim/geokit/version" alt="Latest Stable Version"></a>
+    <a href="https://packagist.org/packages/serafim/geokit"><img src="https://poser.pugx.org/serafim/geokit/v/unstable" alt="Latest Unstable Version"></a>
+    <a href="https://packagist.org/packages/serafim/geokit"><img src="https://poser.pugx.org/serafim/geokit/downloads" alt="Total Downloads"></a>
+    <a href="https://raw.githubusercontent.com/SerafimArts/geokit/master/LICENSE"><img src="https://poser.pugx.org/serafim/geokit/license"></a>
+</p>
+
 Geokit is a PHP toolkit to solve geo-related tasks like:
 
 * Distance calculations.
 * Heading, midpoint and endpoint calculations.
 * Rectangular bounds calculations.
-
-[![Build Status](https://travis-ci.org/jsor/geokit.svg?branch=master)](http://travis-ci.org/jsor/geokit?branch=master)
-[![Coverage Status](https://img.shields.io/coveralls/jsor/geokit.svg?style=flat)](https://coveralls.io/r/jsor/geokit?branch=master)
 
 * [Installation](#installation)
 * [Reference](#reference)
@@ -29,10 +38,10 @@ Installation
 Install the latest version with [Composer](http://getcomposer.org).
 
 ```bash
-composer require geokit/geokit
+composer require serafim/geokit
 ```
 
-Check the [Packagist page](https://packagist.org/packages/geokit/geokit) for all
+Check the [Packagist page](https://packagist.org/packages/serafim/geokit) for all
 available versions.
 
 Reference
