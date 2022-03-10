@@ -1,5 +1,5 @@
 {
-    "name": "geokit/geokit",
+    "name": "serafim/geokit",
     "description": "Geo-Toolkit for PHP",
     "keywords": [
         "geo",
@@ -20,6 +20,9 @@
             "homepage": "https://serafimarts.ru"
         }
     ],
+    "replace": {
+        "geokit/geokit": "^1.0"
+    },
     "require": {
         "php": "^8.0"
     },
