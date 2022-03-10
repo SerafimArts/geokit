@@ -2,23 +2,21 @@
 
 namespace Geokit;
 
-class LatLng implements \ArrayAccess
+class LatLng implements \ArrayAccess, \Stringable
 {
-    private $latitude;
-    private $longitude;
-
-    private static $longitudeKeys = array(
+    private static array $longitudeKeys = [
         'longitude',
         'lng',
         'lon',
-        'x'
-    );
-
-    private static $latitudeKeys = array(
+        'x',
+    ];
+    private static array $latitudeKeys = [
         'latitude',
         'lat',
-        'y'
-    );
+        'y',
+    ];
+    private $latitude;
+    private $longitude;
 
     /**
      * @param float $longitude
@@ -26,67 +24,42 @@ class LatLng implements \ArrayAccess
      */
     public function __construct($latitude, $longitude)
     {
-        $this->latitude = self::normalizeLat((float) $latitude);
-        $this->longitude = self::normalizeLng((float) $longitude);
+        $this->latitude = self::normalizeLat((float)$latitude);
+        $this->longitude = self::normalizeLng((float)$longitude);
     }
 
     /**
-     * @return float
+     * Normalizes a latitude to the (-90, 90) range. Latitudes above 90 or
+     * below -90 are capped, not wrapped.
+     *
+     * @param float $lat The latitude to normalize, in degrees
+     * @return float The latitude, fit within the (-90, 90) range
      */
-    public function getLongitude()
+    public static function normalizeLat($lat)
     {
-        return $this->longitude;
+        return max(-90, min(90, $lat));
     }
 
     /**
-     * @return float
+     * Normalizes a longitude to the (-180, 180) range. Longitudes above 180
+     * or below -180 are wrapped.
+     *
+     * @param float $lng The longitude to normalize, in degrees
+     * @return float The longitude, fit within the (-180, 180) range
      */
-    public function getLatitude()
+    public static function normalizeLng($lng)
     {
-        return $this->latitude;
-    }
+        $mod = fmod($lng, 360);
 
-    public function offsetExists($offset)
-    {
-        return in_array(
-            $offset,
-            array_merge(
-                self::$latitudeKeys,
-                self::$longitudeKeys
-            ),
-            true
-        );
-    }
-
-    public function offsetGet($offset)
-    {
-        if (in_array($offset, self::$latitudeKeys, true)) {
-            return $this->getLatitude();
+        if ($mod < -180) {
+            return $mod + 360;
         }
 
-        if (in_array($offset, self::$longitudeKeys, true)) {
-            return $this->getLongitude();
+        if ($mod > 180) {
+            return $mod - 360;
         }
 
-        throw new \InvalidArgumentException(sprintf('Invalid offset %s.', json_encode($offset)));
-    }
-
-    public function offsetUnset($offset)
-    {
-        throw new \BadMethodCallException('LatLng is immutable.');
-    }
-
-    public function offsetSet($offset, $value)
-    {
-        throw new \BadMethodCallException('LatLng is immutable.');
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return sprintf('%F,%F', $this->getLatitude(), $this->getLongitude());
+        return $mod;
     }
 
     /**
@@ -120,7 +93,7 @@ class LatLng implements \ArrayAccess
      *
      * If $input is an LatLng object, it is just passed through.
      *
-     * @param  mixed                     $input
+     * @param mixed $input
      * @return LatLng
      * @throws \InvalidArgumentException
      */
@@ -153,40 +126,62 @@ class LatLng implements \ArrayAccess
             return new self($lat, $lng);
         }
 
-        throw new \InvalidArgumentException(sprintf('Cannot normalize LatLng from input %s.', json_encode($input)));
+        throw new \InvalidArgumentException(sprintf('Cannot normalize LatLng from input %s.', json_encode($input, JSON_THROW_ON_ERROR)));
+    }
+
+    public function offsetExists($offset): bool
+    {
+        return in_array(
+            $offset,
+            array_merge(
+                self::$latitudeKeys,
+                self::$longitudeKeys
+            ),
+            true
+        );
+    }
+
+    public function offsetGet($offset): float|int
+    {
+        if (in_array($offset, self::$latitudeKeys, true)) {
+            return $this->getLatitude();
+        }
+
+        if (in_array($offset, self::$longitudeKeys, true)) {
+            return $this->getLongitude();
+        }
+
+        throw new \InvalidArgumentException(sprintf('Invalid offset %s.', json_encode($offset, JSON_THROW_ON_ERROR)));
     }
 
     /**
-     * Normalizes a latitude to the (-90, 90) range. Latitudes above 90 or
-     * below -90 are capped, not wrapped.
-     *
-     * @param  float $lat The latitude to normalize, in degrees
-     * @return float The latitude, fit within the (-90, 90) range
+     * @return float
      */
-    public static function normalizeLat($lat)
+    public function getLatitude()
     {
-        return max(-90, min(90, $lat));
+        return $this->latitude;
     }
 
     /**
-     * Normalizes a longitude to the (-180, 180) range. Longitudes above 180
-     * or below -180 are wrapped.
-     *
-     * @param  float $lng The longitude to normalize, in degrees
-     * @return float The longitude, fit within the (-180, 180) range
+     * @return float
      */
-    public static function normalizeLng($lng)
+    public function getLongitude()
     {
-        $mod = fmod($lng, 360);
+        return $this->longitude;
+    }
 
-        if ($mod < -180) {
-            return $mod + 360;
-        }
+    public function offsetUnset($offset): void
+    {
+        throw new \BadMethodCallException('LatLng is immutable.');
+    }
 
-        if ($mod > 180) {
-            return $mod - 360;
-        }
+    public function offsetSet($offset, $value): void
+    {
+        throw new \BadMethodCallException('LatLng is immutable.');
+    }
 
-        return $mod;
+    public function __toString(): string
+    {
+        return sprintf('%F,%F', $this->getLatitude(), $this->getLongitude());
     }
 }

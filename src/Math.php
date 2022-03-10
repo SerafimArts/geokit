@@ -20,8 +20,8 @@ class Math
      *
      * @see http://en.wikipedia.org/wiki/Haversine_formula
      * @see http://www.movable-type.co.uk/scripts/latlong.html
-     * @param  mixed    $from
-     * @param  mixed    $to
+     * @param mixed $from
+     * @param mixed $to
      * @return Distance
      */
     public function distanceHaversine($from, $to)
@@ -37,9 +37,7 @@ class Math
         $dLat = $lat2 - $lat1;
         $dLon = $lng2 - $lng1;
 
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-            cos($lat1) * cos($lat2) *
-            sin($dLon / 2) * sin($dLon / 2);
+        $a = sin($dLat / 2) * sin($dLat / 2) + cos($lat1) * cos($lat2) * sin($dLon / 2) * sin($dLon / 2);
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
@@ -52,8 +50,8 @@ class Math
      *
      * @see http://en.wikipedia.org/wiki/Vincenty%27s_formulae
      * @see http://www.movable-type.co.uk/scripts/latlong-vincenty.html
-     * @param  mixed             $from
-     * @param  mixed             $to
+     * @param mixed $from
+     * @param mixed $to
      * @return Distance
      * @throws \RuntimeException
      */
@@ -86,9 +84,9 @@ class Math
         do {
             $sinLambda = sin($lambda);
             $cosLambda = cos($lambda);
-            $sinSigma = sqrt(($cosU2 * $sinLambda) * ($cosU2 * $sinLambda) +
-                ($cosU1 * $sinU2 - $sinU1 * $cosU2 * $cosLambda) *
-                ($cosU1 * $sinU2 - $sinU1 * $cosU2 * $cosLambda));
+            $sinSigma = sqrt(
+                ($cosU2 * $sinLambda) * ($cosU2 * $sinLambda) + ($cosU1 * $sinU2 - $sinU1 * $cosU2 * $cosLambda) * ($cosU1 * $sinU2 - $sinU1 * $cosU2 * $cosLambda)
+            );
 
             if ($sinSigma == 0) {
                 return new Distance(0); // co-incident points
@@ -107,8 +105,7 @@ class Math
 
             $C = $f / 16 * $cosSqAlpha * (4 + $f * (4 - 3 * $cosSqAlpha));
             $lambdaP = $lambda;
-            $lambda = $L + (1 - $C) * $f * $sinAlpha *
-                ($sigma + $C * $sinSigma * ($cos2SigmaM + $C * $cosSigma * (-1 + 2 * $cos2SigmaM * $cos2SigmaM)));
+            $lambda = $L + (1 - $C) * $f * $sinAlpha * ($sigma + $C * $sinSigma * ($cos2SigmaM + $C * $cosSigma * (-1 + 2 * $cos2SigmaM * $cos2SigmaM)));
         } while (abs($lambda - $lambdaP) > 1e-12 && --$iterLimit > 0);
 
         if ($iterLimit == 0) {
@@ -118,8 +115,7 @@ class Math
         $uSq = $cosSqAlpha * ($a * $a - $b * $b) / ($b * $b);
         $A = 1 + $uSq / 16384 * (4096 + $uSq * (-768 + $uSq * (320 - 175 * $uSq)));
         $B = $uSq / 1024 * (256 + $uSq * (-128 + $uSq * (74 - 47 * $uSq)));
-        $deltaSigma = $B * $sinSigma * ($cos2SigmaM + $B / 4 * ($cosSigma * (-1 + 2 * $cos2SigmaM * $cos2SigmaM) -
-                    $B / 6 * $cos2SigmaM * (-3 + 4 * $sinSigma * $sinSigma) * (-3 + 4 * $cos2SigmaM * $cos2SigmaM)));
+        $deltaSigma = $B * $sinSigma * ($cos2SigmaM + $B / 4 * ($cosSigma * (-1 + 2 * $cos2SigmaM * $cos2SigmaM) - $B / 6 * $cos2SigmaM * (-3 + 4 * $sinSigma * $sinSigma) * (-3 + 4 * $cos2SigmaM * $cos2SigmaM)));
         $s = $b * $A * ($sigma - $deltaSigma);
 
         return new Distance($s);
@@ -129,8 +125,8 @@ class Math
      * Calculates the (initial) heading from the first point to the second point
      * in degrees.
      *
-     * @param  mixed $from
-     * @param  mixed $to
+     * @param mixed $from
+     * @param mixed $to
      * @return float Initial heading in degrees from North
      */
     public function heading($from, $to)
@@ -148,8 +144,7 @@ class Math
         $dLon = deg2rad($lng2 - $lng1);
 
         $y = sin($dLon) * cos($lat2);
-        $x = cos($lat1) * sin($lat2) -
-            sin($lat1) * cos($lat2) * cos($dLon);
+        $x = cos($lat1) * sin($lat2) - sin($lat1) * cos($lat2) * cos($dLon);
 
         $heading = atan2($y, $x);
 
@@ -161,8 +156,8 @@ class Math
      * points.
      *
      * @see http://www.movable-type.co.uk/scripts/latlong.html
-     * @param  mixed  $from
-     * @param  mixed  $to
+     * @param mixed $from
+     * @param mixed $to
      * @return LatLng
      */
     public function midpoint($from, $to)
@@ -182,8 +177,10 @@ class Math
         $Bx = cos($lat2) * cos($dLon);
         $By = cos($lat2) * sin($dLon);
 
-        $lat3 = atan2(sin($lat1) + sin($lat2),
-            sqrt((cos($lat1) + $Bx) * (cos($lat1) + $Bx) + $By * $By));
+        $lat3 = atan2(
+            sin($lat1) + sin($lat2),
+            sqrt((cos($lat1) + $Bx) * (cos($lat1) + $Bx) + $By * $By)
+        );
         $lon3 = deg2rad($lng1) + atan2($By, cos($lat1) + $Bx);
 
         return new LatLng(rad2deg($lat3), rad2deg($lon3));
@@ -194,9 +191,9 @@ class Math
      * heading and distance, from the given start point.
      *
      * @see http://www.movable-type.co.uk/scripts/latlong.html
-     * @param  mixed  $start
-     * @param  float  $heading  (in degrees)
-     * @param  mixed  $distance (in meters)
+     * @param mixed $start
+     * @param float $heading (in degrees)
+     * @param mixed $distance (in meters)
      * @return LatLng
      */
     public function endpoint($start, $heading, $distance)
@@ -210,17 +207,20 @@ class Math
         $angularDistance = $distance->meters() / $this->ellipsoid->getSemiMajorAxis();
         $heading = deg2rad($heading);
 
-        $lat2 = asin(sin($lat) * cos($angularDistance) +
-            cos($lat) * sin($angularDistance) * cos($heading));
-        $lon2 = $lng + atan2(sin($heading) * sin($angularDistance) * cos($lat),
-                cos($angularDistance) - sin($lat) * sin($lat2));
+        $lat2 = asin(
+            sin($lat) * cos($angularDistance) + cos($lat) * sin($angularDistance) * cos($heading)
+        );
+        $lon2 = $lng + atan2(
+                sin($heading) * sin($angularDistance) * cos($lat),
+                cos($angularDistance) - sin($lat) * sin($lat2)
+            );
 
         return new LatLng(rad2deg($lat2), rad2deg($lon2));
     }
 
     /**
-     * @param  mixed  $latLngOrBounds
-     * @param  mixed  $distance       (in meters)
+     * @param mixed $latLngOrBounds
+     * @param mixed $distance (in meters)
      * @return Bounds
      */
     public function expand($latLngOrBounds, $distance)
@@ -228,19 +228,6 @@ class Math
         return $this->transformBounds(
             $latLngOrBounds,
             Distance::normalize($distance)->meters()
-        );
-    }
-
-    /**
-     * @param  mixed  $latLngOrBounds
-     * @param  mixed  $distance       (in meters)
-     * @return Bounds
-     */
-    public function shrink($latLngOrBounds, $distance)
-    {
-        return $this->transformBounds(
-            $latLngOrBounds,
-            -Distance::normalize($distance)->meters()
         );
     }
 
@@ -254,13 +241,11 @@ class Math
         $lngNE = $bounds->getNorthEast()->getLongitude();
 
         $latlngSW = new LatLng(
-            $this->latDistance($latSW, $distanceInMeters),
-            $this->lngDistance($latSW, $lngSW, $distanceInMeters)
+            $this->latDistance($latSW, $distanceInMeters), $this->lngDistance($latSW, $lngSW, $distanceInMeters)
         );
 
         $latlngNE = new LatLng(
-            $this->latDistance($latNE, -$distanceInMeters),
-            $this->lngDistance($latNE, $lngNE, -$distanceInMeters)
+            $this->latDistance($latNE, -$distanceInMeters), $this->lngDistance($latNE, $lngNE, -$distanceInMeters)
         );
 
         // Check if we're shrinking too much
@@ -271,6 +256,16 @@ class Math
         }
 
         return new Bounds($latlngSW, $latlngNE);
+    }
+
+    private function latDistance($lat1, $distanceInMeters)
+    {
+        $radius = $this->ellipsoid->getSemiMajorAxis();
+
+        $lat1 = deg2rad($lat1);
+        $lat2 = ($radius * $lat1 - $distanceInMeters) / $radius;
+
+        return LatLng::normalizeLat(rad2deg($lat2));
     }
 
     private function lngDistance($lat1, $lng1, $distanceInMeters)
@@ -285,13 +280,16 @@ class Math
         return LatLng::normalizeLng(rad2deg($lng2));
     }
 
-    private function latDistance($lat1, $distanceInMeters)
+    /**
+     * @param mixed $latLngOrBounds
+     * @param mixed $distance (in meters)
+     * @return Bounds
+     */
+    public function shrink($latLngOrBounds, $distance)
     {
-        $radius = $this->ellipsoid->getSemiMajorAxis();
-
-        $lat1 = deg2rad($lat1);
-        $lat2 = ($radius * $lat1 - $distanceInMeters) / $radius;
-
-        return LatLng::normalizeLat(rad2deg($lat2));
+        return $this->transformBounds(
+            $latLngOrBounds,
+            -Distance::normalize($distance)->meters()
+        );
     }
 }

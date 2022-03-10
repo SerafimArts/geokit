@@ -6,26 +6,9 @@ class Polygon implements \Countable, \ArrayAccess, \IteratorAggregate
 {
     private $points;
 
-    public function __construct(array $points = array())
+    public function __construct(array $points = [])
     {
-        $this->points = array_map(function ($latLng) {
-            return LatLng::normalize($latLng);
-        }, $points);
-    }
-
-    public function isClosed()
-    {
-        if (0 === count($this->points)) {
-            return false;
-        }
-
-        $lastPoint  = end($this->points);
-        $firstPoint = reset($this->points);
-
-        return (
-            $lastPoint->getLatitude() === $firstPoint->getLatitude() &&
-            $lastPoint->getLongitude() === $firstPoint->getLongitude()
-        );
+        $this->points = array_map(fn($latLng) => LatLng::normalize($latLng), $points);
     }
 
     public function close()
@@ -43,10 +26,22 @@ class Polygon implements \Countable, \ArrayAccess, \IteratorAggregate
         return new self($points);
     }
 
+    public function isClosed()
+    {
+        if (0 === count($this->points)) {
+            return false;
+        }
+
+        $lastPoint = end($this->points);
+        $firstPoint = reset($this->points);
+
+        return ($lastPoint->getLatitude() === $firstPoint->getLatitude() && $lastPoint->getLongitude(
+            ) === $firstPoint->getLongitude());
+    }
+
     /**
      * @see https://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-     * @param  LatLng  $latLng
-     * @return boolean
+     * @return bool
      */
     public function contains(LatLng $latLng)
     {
@@ -70,10 +65,7 @@ class Polygon implements \Countable, \ArrayAccess, \IteratorAggregate
             $x1 = $point->getLongitude();
             $y1 = $point->getLatitude();
 
-            if (
-                (($y1 > $y) !== ($y0 > $y)) &&
-                ($x < ($x0 - $x1) * ($y - $y1) / ($y0 - $y1) + $x1)
-            ) {
+            if ((($y1 > $y) !== ($y0 > $y)) && ($x < ($x0 - $x1) * ($y - $y1) / ($y0 - $y1) + $x1)) {
                 $inside = !$inside;
             }
 
@@ -102,17 +94,12 @@ class Polygon implements \Countable, \ArrayAccess, \IteratorAggregate
         return $bounds;
     }
 
-    public function count()
+    public function count(): int
     {
         return count($this->points);
     }
 
-    public function offsetExists($offset)
-    {
-        return array_key_exists($offset, $this->points);
-    }
-
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         if ($this->offsetExists($offset)) {
             return $this->points[$offset];
@@ -121,22 +108,27 @@ class Polygon implements \Countable, \ArrayAccess, \IteratorAggregate
         throw new \InvalidArgumentException(
             sprintf(
                 'Invalid offset %s.',
-                json_encode($offset)
+                json_encode($offset, JSON_THROW_ON_ERROR)
             )
         );
     }
 
-    public function offsetUnset($offset)
+    public function offsetExists($offset): bool
+    {
+        return array_key_exists($offset, $this->points);
+    }
+
+    public function offsetUnset($offset): void
     {
         throw new \BadMethodCallException('Polygon is immutable.');
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new \BadMethodCallException('Polygon is immutable.');
     }
 
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->points);
     }

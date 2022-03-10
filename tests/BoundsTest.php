@@ -1,27 +1,19 @@
 <?php
 
-namespace Geokit;
+namespace Geokit\Tests;
 
-class BoundsTest extends \PHPUnit_Framework_TestCase
+use Geokit\Bounds;
+use Geokit\LatLng;
+use PHPUnit\Framework\TestCase;
+
+class BoundsTest extends TestCase
 {
-    /**
-     * @param Bounds  $b
-     * @param integer $w
-     * @param integer $s
-     * @param integer $e
-     * @param integer $n
-     */
-    protected function assertBounds(Bounds $b, $s, $w, $n, $e)
-    {
-        $this->assertEquals($s, $b->getSouthWest()->getLatitude());
-        $this->assertEquals($w, $b->getSouthWest()->getLongitude());
-        $this->assertEquals($n, $b->getNorthEast()->getLatitude());
-        $this->assertEquals($e, $b->getNorthEast()->getLongitude());
-    }
-
     public function testConstructorShouldAcceptLatLngsAsFirstAndSecondArgument()
     {
-        $bounds = new Bounds(new LatLng(2.5678, 1.1234), new LatLng(4.5678, 3.1234));
+        $bounds = new Bounds(
+            new LatLng(2.5678, 1.1234),
+            new LatLng(4.5678, 3.1234)
+        );
 
         $this->assertTrue($bounds->getSouthWest() instanceof LatLng);
         $this->assertEquals(1.1234, $bounds->getSouthWest()->getLongitude());
@@ -34,7 +26,8 @@ class BoundsTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructorShouldThrowExceptionForInvalidSouthCoordinate()
     {
-        $this->setExpectedException('\LogicException');
+        $this->expectException(\LogicException::class);
+
         new Bounds(new LatLng(1, 90), new LatLng(0, 90));
     }
 
@@ -62,7 +55,7 @@ class BoundsTest extends \PHPUnit_Framework_TestCase
 
     public function testArrayAccess()
     {
-        $keys = array(
+        $keys = [
             'southwest',
             'south_west',
             'southWest',
@@ -71,8 +64,8 @@ class BoundsTest extends \PHPUnit_Framework_TestCase
             'northEast',
 
             'center',
-            'span'
-        );
+            'span',
+        ];
 
         $bounds = new Bounds(new LatLng(2.5678, 1.1234), new LatLng(4.5678, 3.1234));
 
@@ -84,7 +77,8 @@ class BoundsTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetGetThrowsExceptionForInvalidKey()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Invalid offset "foo".');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid offset "foo".');
 
         $bounds = new Bounds(new LatLng(2.5678, 1.1234), new LatLng(4.5678, 3.1234));
 
@@ -93,7 +87,7 @@ class BoundsTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetSetThrowsException()
     {
-        $this->setExpectedException('\BadMethodCallException');
+        $this->expectException(\BadMethodCallException::class);
 
         $bounds = new Bounds(new LatLng(2.5678, 1.1234), new LatLng(4.5678, 3.1234));
 
@@ -102,7 +96,7 @@ class BoundsTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetUnsetThrowsException()
     {
-        $this->setExpectedException('\BadMethodCallException');
+        $this->expectException(\BadMethodCallException::class);
 
         $bounds = new Bounds(new LatLng(2.5678, 1.1234), new LatLng(4.5678, 3.1234));
 
@@ -127,6 +121,21 @@ class BoundsTest extends \PHPUnit_Framework_TestCase
         $bounds = $bounds->extend(new LatLng(0, -1));
         $bounds = $bounds->extend(new LatLng(-1, 0));
         $this->assertBounds($bounds, -1, -1, 1, 1);
+    }
+
+    /**
+     * @param Bounds $b
+     * @param int $w
+     * @param int $s
+     * @param int $e
+     * @param int $n
+     */
+    protected function assertBounds(Bounds $b, $s, $w, $n, $e)
+    {
+        $this->assertEquals($s, $b->getSouthWest()->getLatitude());
+        $this->assertEquals($w, $b->getSouthWest()->getLongitude());
+        $this->assertEquals($n, $b->getNorthEast()->getLatitude());
+        $this->assertEquals($e, $b->getNorthEast()->getLongitude());
     }
 
     public function testUnion()
@@ -185,56 +194,59 @@ class BoundsTest extends \PHPUnit_Framework_TestCase
 
     public function normalizeShouldAcceptArrayArgumentDataProvider()
     {
-        $southWestKeys = array(
+        $southWestKeys = [
             'southwest',
             'south_west',
             'southWest',
-        );
+        ];
 
-        $northEastKeys = array(
+        $northEastKeys = [
             'northeast',
             'north_east',
             'northEast',
-        );
+        ];
 
-        $data = array();
+        $data = [];
 
         foreach ($southWestKeys as $southWestKey) {
             foreach ($northEastKeys as $northEastKey) {
-                $data[] = array(
-                    array(
-                        $southWestKey => array(-45, 179),
-                        $northEastKey => array(45, -179)
-                    )
-                );
+                $data[] = [
+                    [
+                        $southWestKey => [-45, 179],
+                        $northEastKey => [45, -179],
+                    ],
+                ];
             }
         }
 
-        $data[] = array(
-            array(
-                array(-45, 179),
-                array(45, -179)
-            )
-        );
+        $data[] = [
+            [
+                [-45, 179],
+                [45, -179],
+            ],
+        ];
 
         return $data;
     }
 
     public function testNormalizeShouldThrowExceptionForInvalidArrayInput()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Cannot normalize Bounds from input ["foo",""].');
-        Bounds::normalize(array('foo', ''));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot normalize Bounds from input ["foo",""].');
+        Bounds::normalize(['foo', '']);
     }
 
     public function testNormalizeShouldThrowExceptionForInvalidStringInput()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Cannot normalize Bounds from input "foo".');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot normalize Bounds from input "foo".');
         Bounds::normalize('foo');
     }
 
     public function testNormalizeShouldThrowExceptionForInvalidObjectInput()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Cannot normalize Bounds from input {}.');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot normalize Bounds from input {}.');
         Bounds::normalize(new \stdClass());
     }
 }

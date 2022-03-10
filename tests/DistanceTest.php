@@ -1,8 +1,11 @@
 <?php
 
-namespace Geokit;
+namespace Geokit\Tests;
 
-class DistanceTest extends \PHPUnit_Framework_TestCase
+use Geokit\Distance;
+use PHPUnit\Framework\TestCase;
+
+class DistanceTest extends TestCase
 {
     public function testShouldConvertToMeters()
     {
@@ -66,7 +69,7 @@ class DistanceTest extends \PHPUnit_Framework_TestCase
 
     public function testShouldThrowExceptionForInvalidUnit()
     {
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
         new Distance(1000, 'foo');
     }
 
@@ -103,99 +106,99 @@ class DistanceTest extends \PHPUnit_Framework_TestCase
 
     public function normalizeShouldAcceptStringArgumentDataProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 1000,
-                'm'
-            ),
-            array(
+                'm',
+            ],
+            [
                 1000,
-                'meter'
-            ),
-            array(
+                'meter',
+            ],
+            [
                 1000,
-                'meters'
-            ),
-            array(
+                'meters',
+            ],
+            [
                 1000,
-                'metre'
-            ),
-            array(
+                'metre',
+            ],
+            [
                 1000,
-                'metres'
-            ),
-            array(
+                'metres',
+            ],
+            [
                 1,
-                'km'
-            ),
-            array(
+                'km',
+            ],
+            [
                 1,
-                'kilometer'
-            ),
-            array(
+                'kilometer',
+            ],
+            [
                 1,
-                'kilometers'
-            ),
-            array(
+                'kilometers',
+            ],
+            [
                 1,
-                'kilometre'
-            ),
-            array(
+                'kilometre',
+            ],
+            [
                 1,
-                'kilometres'
-            ),
-            array(
+                'kilometres',
+            ],
+            [
                 0.62137119223733,
-                'mi'
-            ),
-            array(
+                'mi',
+            ],
+            [
                 0.62137119223733,
-                'mile'
-            ),
-            array(
+                'mile',
+            ],
+            [
                 0.62137119223733,
-                'miles'
-            ),
-            array(
+                'miles',
+            ],
+            [
                 3280.83989501312336,
-                'ft'
-            ),
-            array(
+                'ft',
+            ],
+            [
                 3280.83989501312336,
-                'foot'
-            ),
-            array(
+                'foot',
+            ],
+            [
                 3280.83989501312336,
-                'feet'
-            ),
-            array(
+                'feet',
+            ],
+            [
                 0.53995680345572,
-                'nm'
-            ),
-            array(
+                'nm',
+            ],
+            [
                 0.53995680345572,
-                'nautical'
-            ),
-            array(
+                'nautical',
+            ],
+            [
                 0.53995680345572,
-                'nauticalmile'
-            ),
-            array(
+                'nauticalmile',
+            ],
+            [
                 0.53995680345572,
-                'nauticalmiles'
-            ),
-        );
+                'nauticalmiles',
+            ],
+        ];
     }
 
     public function testNormalizeShouldThrowExceptionForInvalidInput()
     {
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
         Distance::normalize('1000foo');
     }
 
     public function testResolveUnitAliasShouldThrowExceptionForInvalidAlias()
     {
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
         Distance::resolveUnitAlias('foo');
     }
 }

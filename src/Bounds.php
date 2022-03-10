@@ -4,216 +4,17 @@ namespace Geokit;
 
 class Bounds implements \ArrayAccess
 {
-    private $southWest;
-    private $northEast;
-
-    private static $southWestKeys = array(
-        'southwest',
-        'south_west',
-        'southWest'
-    );
-
-    private static $northEastKeys = array(
-        'northeast',
-        'north_east',
-        'northEast'
-    );
+    private static array $southWestKeys = ['southwest', 'south_west', 'southWest'];
+    private static array $northEastKeys = ['northeast', 'north_east', 'northEast'];
 
     /**
-     * @param  LatLng          $southWest
-     * @param  LatLng          $northEast
      * @throws \LogicException
      */
-    public function __construct(LatLng $southWest, LatLng $northEast)
+    public function __construct(private LatLng $southWest, private LatLng $northEast)
     {
-        $this->southWest = $southWest;
-        $this->northEast = $northEast;
-
         if ($this->southWest->getLatitude() > $this->northEast->getLatitude()) {
             throw new \LogicException('Bounds south-west coordinate cannot be north of the north-east coordinate');
         }
-    }
-
-    /**
-     * @return LatLng
-     */
-    public function getSouthWest()
-    {
-        return $this->southWest;
-    }
-
-    /**
-     * @return LatLng
-     */
-    public function getNorthEast()
-    {
-        return $this->northEast;
-    }
-
-    /**
-     * @return LatLng
-     */
-    public function getCenter()
-    {
-        if ($this->crossesAntimeridian()) {
-            $span = $this->lngSpan($this->southWest->getLongitude(), $this->northEast->getLongitude());
-            $lng = $this->southWest->getLongitude() + $span / 2;
-        } else {
-            $lng = ($this->southWest->getLongitude() + $this->northEast->getLongitude()) / 2;
-        }
-
-        return new LatLng(
-            ($this->southWest->getLatitude() + $this->northEast->getLatitude()) / 2,
-            $lng
-        );
-    }
-
-    /**
-     * @return LatLng
-     */
-    public function getSpan()
-    {
-        return new LatLng(
-            $this->northEast->getLatitude() - $this->southWest->getLatitude(),
-            $this->lngSpan($this->southWest->getLongitude(), $this->northEast->getLongitude())
-        );
-    }
-
-    public function offsetExists($offset)
-    {
-        return in_array(
-            $offset,
-            array_merge(
-                self::$southWestKeys,
-                self::$northEastKeys,
-                array('center', 'span')
-            ),
-            true
-        );
-    }
-
-    public function offsetGet($offset)
-    {
-        if (in_array($offset, self::$southWestKeys, true)) {
-            return $this->getSouthWest();
-        }
-
-        if (in_array($offset, self::$northEastKeys, true)) {
-            return $this->getNorthEast();
-        }
-
-        if ('center' === $offset) {
-            return $this->getCenter();
-        }
-
-        if ('span' === $offset) {
-            return $this->getSpan();
-        }
-
-        throw new \InvalidArgumentException(sprintf('Invalid offset %s.', json_encode($offset)));
-    }
-
-    public function offsetUnset($offset)
-    {
-        throw new \BadMethodCallException('Bounds is immutable.');
-    }
-
-    public function offsetSet($offset, $value)
-    {
-        throw new \BadMethodCallException('Bounds is immutable.');
-    }
-
-    /**
-     * @return boolean
-     */
-    public function crossesAntimeridian()
-    {
-        return $this->southWest->getLongitude() > $this->northEast->getLongitude();
-    }
-
-    /**
-     * @param  LatLng  $latLng
-     * @return boolean
-     */
-    public function contains(LatLng $latLng)
-    {
-        // check latitude
-        if ($this->southWest->getLatitude() > $latLng->getLatitude() ||
-            $latLng->getLatitude() > $this->northEast->getLatitude()
-        ) {
-            return false;
-        }
-
-        // check longitude
-        return $this->containsLng($latLng->getLongitude());
-    }
-
-    /**
-     * @param  LatLng $latLng
-     * @return Bounds
-     */
-    public function extend(LatLng $latLng)
-    {
-        $newSouth = min($this->southWest->getLatitude(), $latLng->getLatitude());
-        $newNorth = max($this->northEast->getLatitude(), $latLng->getLatitude());
-
-        $newWest = $this->southWest->getLongitude();
-        $newEast = $this->northEast->getLongitude();
-
-        if (!$this->containsLng($latLng->getLongitude())) {
-            // try extending east and try extending west, and use the one that
-            // has the smaller longitudinal span
-            $extendEastLngSpan = $this->lngSpan($newWest, $latLng->getLongitude());
-            $extendWestLngSpan = $this->lngSpan($latLng->getLongitude(), $newEast);
-
-            if ($extendEastLngSpan <= $extendWestLngSpan) {
-                $newEast = $latLng->getLongitude();
-            } else {
-                $newWest = $latLng->getLongitude();
-            }
-        }
-
-        return new self(new LatLng($newSouth, $newWest), new LatLng($newNorth, $newEast));
-    }
-
-    /**
-     * @param  Bounds $bounds
-     * @return Bounds
-     */
-    public function union(Bounds $bounds)
-    {
-        $newBounds = $this->extend($bounds->getSouthWest());
-
-        return $newBounds->extend($bounds->getNorthEast());
-    }
-
-    /**
-     * Returns whether or not the given line of longitude is inside the bounds.
-     *
-     * @param  float   $lng
-     * @return boolean
-     */
-    protected function containsLng($lng)
-    {
-        if ($this->crossesAntimeridian()) {
-            return $lng <= $this->northEast->getLongitude() ||
-            $lng >= $this->southWest->getLongitude();
-        } else {
-            return $this->southWest->getLongitude() <= $lng &&
-            $lng <= $this->northEast->getLongitude();
-        }
-    }
-
-    /**
-     * Gets the longitudinal span of the given west and east coordinates.
-     *
-     * @param  float $west
-     * @param  float $east
-     * @return float
-     */
-    protected function lngSpan($west, $east)
-    {
-        return ($west > $east) ? ($east + 360 - $west) : ($east - $west);
     }
 
     /**
@@ -246,7 +47,7 @@ class Bounds implements \ArrayAccess
      *
      * If $input is an Bounds object, it is just passed through.
      *
-     * @param  mixed                     $input
+     * @param mixed $input
      * @return Bounds
      * @throws \InvalidArgumentException
      */
@@ -259,9 +60,13 @@ class Bounds implements \ArrayAccess
         $southWest = null;
         $northEast = null;
 
-        if (is_string($input) && preg_match('/(\-?\d+\.?\d*)[, ] ?(\-?\d+\.?\d*)[, ] ?(\-?\d+\.?\d*)[, ] ?(\-?\d+\.?\d*)$/', $input, $match)) {
-            $southWest = array('lat' => $match[1], 'lng' => $match[2]);
-            $northEast = array('lat' => $match[3], 'lng' => $match[4]);
+        if (is_string($input) && preg_match(
+                '/(\-?\d+\.?\d*)[, ] ?(\-?\d+\.?\d*)[, ] ?(\-?\d+\.?\d*)[, ] ?(\-?\d+\.?\d*)$/',
+                $input,
+                $match
+            )) {
+            $southWest = ['lat' => $match[1], 'lng' => $match[2]];
+            $northEast = ['lat' => $match[3], 'lng' => $match[4]];
         } elseif (is_array($input) || $input instanceof \ArrayAccess) {
             if (Utils::isNumericInputArray($input)) {
                 $southWest = $input[0];
@@ -276,10 +81,179 @@ class Bounds implements \ArrayAccess
             try {
                 return new self(LatLng::normalize($southWest), LatLng::normalize($northEast));
             } catch (\InvalidArgumentException $e) {
-                throw new \InvalidArgumentException(sprintf('Cannot normalize Bounds from input %s.', json_encode($input)), 0, $e);
+                throw new \InvalidArgumentException(
+                    sprintf('Cannot normalize Bounds from input %s.', json_encode($input, JSON_THROW_ON_ERROR)), 0, $e
+                );
             }
         }
 
-        throw new \InvalidArgumentException(sprintf('Cannot normalize Bounds from input %s.', json_encode($input)));
+        throw new \InvalidArgumentException(
+            sprintf('Cannot normalize Bounds from input %s.', json_encode($input, JSON_THROW_ON_ERROR))
+        );
+    }
+
+    public function offsetExists($offset): bool
+    {
+        return in_array($offset, array_merge(self::$southWestKeys, self::$northEastKeys, ['center', 'span']), true);
+    }
+
+    public function offsetGet($offset): LatLng
+    {
+        if (in_array($offset, self::$southWestKeys, true)) {
+            return $this->getSouthWest();
+        }
+
+        if (in_array($offset, self::$northEastKeys, true)) {
+            return $this->getNorthEast();
+        }
+
+        if ('center' === $offset) {
+            return $this->getCenter();
+        }
+
+        if ('span' === $offset) {
+            return $this->getSpan();
+        }
+
+        throw new \InvalidArgumentException(sprintf('Invalid offset %s.', json_encode($offset, JSON_THROW_ON_ERROR)));
+    }
+
+    /**
+     * @return LatLng
+     */
+    public function getSouthWest()
+    {
+        return $this->southWest;
+    }
+
+    /**
+     * @return LatLng
+     */
+    public function getNorthEast()
+    {
+        return $this->northEast;
+    }
+
+    /**
+     * @return LatLng
+     */
+    public function getCenter()
+    {
+        if ($this->crossesAntimeridian()) {
+            $span = $this->lngSpan($this->southWest->getLongitude(), $this->northEast->getLongitude());
+            $lng = $this->southWest->getLongitude() + $span / 2;
+        } else {
+            $lng = ($this->southWest->getLongitude() + $this->northEast->getLongitude()) / 2;
+        }
+
+        return new LatLng(($this->southWest->getLatitude() + $this->northEast->getLatitude()) / 2, $lng);
+    }
+
+    /**
+     * @return bool
+     */
+    public function crossesAntimeridian()
+    {
+        return $this->southWest->getLongitude() > $this->northEast->getLongitude();
+    }
+
+    /**
+     * Gets the longitudinal span of the given west and east coordinates.
+     *
+     * @param float $west
+     * @param float $east
+     * @return float
+     */
+    protected function lngSpan($west, $east)
+    {
+        return ($west > $east) ? ($east + 360 - $west) : ($east - $west);
+    }
+
+    /**
+     * @return LatLng
+     */
+    public function getSpan()
+    {
+        return new LatLng(
+            $this->northEast->getLatitude() - $this->southWest->getLatitude(),
+            $this->lngSpan($this->southWest->getLongitude(), $this->northEast->getLongitude())
+        );
+    }
+
+    public function offsetUnset($offset): void
+    {
+        throw new \BadMethodCallException('Bounds is immutable.');
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        throw new \BadMethodCallException('Bounds is immutable.');
+    }
+
+    /**
+     * @return bool
+     */
+    public function contains(LatLng $latLng)
+    {
+        // check latitude
+        if ($this->southWest->getLatitude() > $latLng->getLatitude() || $latLng->getLatitude(
+            ) > $this->northEast->getLatitude()) {
+            return false;
+        }
+
+        // check longitude
+        return $this->containsLng($latLng->getLongitude());
+    }
+
+    /**
+     * Returns whether or not the given line of longitude is inside the bounds.
+     *
+     * @param float $lng
+     * @return bool
+     */
+    protected function containsLng($lng)
+    {
+        if ($this->crossesAntimeridian()) {
+            return $lng <= $this->northEast->getLongitude() || $lng >= $this->southWest->getLongitude();
+        } else {
+            return $this->southWest->getLongitude() <= $lng && $lng <= $this->northEast->getLongitude();
+        }
+    }
+
+    /**
+     * @return Bounds
+     */
+    public function union(Bounds $bounds)
+    {
+        $newBounds = $this->extend($bounds->getSouthWest());
+
+        return $newBounds->extend($bounds->getNorthEast());
+    }
+
+    /**
+     * @return Bounds
+     */
+    public function extend(LatLng $latLng)
+    {
+        $newSouth = min($this->southWest->getLatitude(), $latLng->getLatitude());
+        $newNorth = max($this->northEast->getLatitude(), $latLng->getLatitude());
+
+        $newWest = $this->southWest->getLongitude();
+        $newEast = $this->northEast->getLongitude();
+
+        if (!$this->containsLng($latLng->getLongitude())) {
+            // try extending east and try extending west, and use the one that
+            // has the smaller longitudinal span
+            $extendEastLngSpan = $this->lngSpan($newWest, $latLng->getLongitude());
+            $extendWestLngSpan = $this->lngSpan($latLng->getLongitude(), $newEast);
+
+            if ($extendEastLngSpan <= $extendWestLngSpan) {
+                $newEast = $latLng->getLongitude();
+            } else {
+                $newWest = $latLng->getLongitude();
+            }
+        }
+
+        return new self(new LatLng($newSouth, $newWest), new LatLng($newNorth, $newEast));
     }
 }

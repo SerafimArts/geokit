@@ -8,20 +8,20 @@ class Utils
     {
         try {
             return Bounds::normalize($input);
-        } catch (\InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException) {
         }
 
         try {
             $latLng = LatLng::normalize($input);
 
             return new Bounds($latLng, $latLng);
-        } catch (\InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException) {
         }
 
         throw new \InvalidArgumentException(
             sprintf(
                 'Cannot cast to Bounds from input %s.',
-                json_encode($input)
+                json_encode($input, JSON_THROW_ON_ERROR)
             )
         );
     }

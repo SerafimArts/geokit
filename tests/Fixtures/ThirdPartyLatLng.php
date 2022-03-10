@@ -1,6 +1,6 @@
 <?php
 
-namespace Geokit\Fixtures;
+namespace Geokit\Tests\Fixtures;
 
 class ThirdPartyLatLng
 {

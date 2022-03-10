@@ -1,8 +1,11 @@
 <?php
 
-namespace Geokit;
+namespace Geokit\Tests;
 
-class EllipsoidTest extends \PHPUnit_Framework_TestCase
+use Geokit\Ellipsoid;
+use PHPUnit\Framework\TestCase;
+
+class EllipsoidTest extends TestCase
 {
     public function testCreateFromSemiMajorInverseF()
     {
@@ -14,7 +17,7 @@ class EllipsoidTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateFromSemiMajorInverseFThrowsExceptionForInvFlatteongLTEZero()
     {
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
 
         Ellipsoid::createFromSemiMajorAndInvF(0, 0);
     }
@@ -24,7 +27,7 @@ class EllipsoidTest extends \PHPUnit_Framework_TestCase
         $ellipsoid = Ellipsoid::createFromSemiMajorAndSemiMinor(6378137.0, 6356752.3142451793);
 
         $this->assertSame(0.0033528106647474, $ellipsoid->getFlattening());
-        $this->assertSame(298.257223563, $ellipsoid->getInverseFlattening());
+        $this->assertSame(298.2572235629972, $ellipsoid->getInverseFlattening());
     }
 
     public function testGetter()
@@ -39,7 +42,7 @@ class EllipsoidTest extends \PHPUnit_Framework_TestCase
 
     public function testArrayAccess()
     {
-        $keys = array(
+        $keys = [
             'semi_major_axis',
             'semi_major',
             'semiMajorAxis',
@@ -55,8 +58,8 @@ class EllipsoidTest extends \PHPUnit_Framework_TestCase
             'inv_f',
             'inverseFlattening',
             'inverseF',
-            'invF'
-        );
+            'invF',
+        ];
 
         $ellipsoid = new Ellipsoid(1, 2, 3, 4);
 
@@ -68,7 +71,8 @@ class EllipsoidTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetGetThrowsExceptionForInvalidKey()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Invalid offset "foo".');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid offset "foo".');
 
         $ellipsoid = new Ellipsoid(1, 2, 3, 4);
 
@@ -77,7 +81,7 @@ class EllipsoidTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetSetThrowsException()
     {
-        $this->setExpectedException('\BadMethodCallException');
+        $this->expectException(\BadMethodCallException::class);
 
         $ellipsoid = new Ellipsoid(1, 2, 3, 4);
 
@@ -86,7 +90,7 @@ class EllipsoidTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetUnsetThrowsException()
     {
-        $this->setExpectedException('\BadMethodCallException');
+        $this->expectException(\BadMethodCallException::class);
 
         $ellipsoid = new Ellipsoid(1, 2, 3, 4);
 
@@ -131,81 +135,84 @@ class EllipsoidTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(6378137.0, $ellipsoid->getSemiMajorAxis());
         $this->assertSame(6356752.3142451793, $ellipsoid->getSemiMinorAxis());
         $this->assertSame(0.0033528106647474, $ellipsoid->getFlattening());
-        $this->assertSame(298.257223563, $ellipsoid->getInverseFlattening());
+        $this->assertSame(298.257223563, \round($ellipsoid->getInverseFlattening(), 9));
     }
 
     public function normalizeShouldAcceptArrayArgumentDataProvider()
     {
-        $semiMajorAxisKeys = array(
+        $semiMajorAxisKeys = [
             'semi_major_axis',
             'semi_major',
             'semiMajorAxis',
             'semiMajor',
-        );
+        ];
 
-        $semiMinorAxisKeys = array(
+        $semiMinorAxisKeys = [
             'semi_minor_axis',
             'semi_minor',
             'semiMinorAxis',
             'semiMinor',
-        );
+        ];
 
-        $inverseFlatteningKeys = array(
+        $inverseFlatteningKeys = [
             'inverse_flattening',
             'inverse_f',
             'inv_f',
             'inverseFlattening',
             'inverseF',
-            'invF'
-        );
+            'invF',
+        ];
 
-        $data = array();
+        $data = [];
 
         foreach ($semiMajorAxisKeys as $semiMajorAxisKey) {
             foreach ($semiMinorAxisKeys as $semiMinorAxisKey) {
-                $data[] = array(
-                    array(
+                $data[] = [
+                    [
                         $semiMajorAxisKey => 6378137.0,
-                        $semiMinorAxisKey => 6356752.3142451793
-                    )
-                );
+                        $semiMinorAxisKey => 6356752.3142451793,
+                    ],
+                ];
             }
 
             foreach ($inverseFlatteningKeys as $inverseFlatteningKey) {
-                $data[] = array(
-                    array(
+                $data[] = [
+                    [
                         $semiMajorAxisKey => 6378137.0,
-                        $inverseFlatteningKey => 298.257223563
-                    )
-                );
+                        $inverseFlatteningKey => 298.257223563,
+                    ],
+                ];
             }
         }
 
-        $data[] = array(
-            array(
+        $data[] = [
+            [
                 6378137.0,
-                298.257223563
-            )
-        );
+                298.257223563,
+            ],
+        ];
 
         return $data;
     }
 
     public function testNormalizeShouldThrowExceptionForInvalidArrayInput()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Cannot normalize Ellipsoid from input ["foo",""].');
-        Ellipsoid::normalize(array('foo', ''));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot normalize Ellipsoid from input ["foo",""].');
+        Ellipsoid::normalize(['foo', '']);
     }
 
     public function testNormalizeShouldThrowExceptionForInvalidStringInput()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Cannot normalize Ellipsoid from input "foo".');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot normalize Ellipsoid from input "foo".');
         Ellipsoid::normalize('foo');
     }
 
     public function testNormalizeShouldThrowExceptionForInvalidObjectInput()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Cannot normalize Ellipsoid from input {}.');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot normalize Ellipsoid from input {}.');
         Ellipsoid::normalize(new \stdClass());
     }
 

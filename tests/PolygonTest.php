@@ -1,17 +1,21 @@
 <?php
 
-namespace Geokit;
+namespace Geokit\Tests;
 
-class PolygonTest extends \PHPUnit_Framework_TestCase
+use Geokit\LatLng;
+use Geokit\Polygon;
+use PHPUnit\Framework\TestCase;
+
+class PolygonTest extends TestCase
 {
     public function testConstructorShouldAcceptArrayOfLatLngs()
     {
-        $points = array(
+        $points = [
             new LatLng(0, 0),
-            array('latitude' => 0, 'longitude' => 1),
+            ['latitude' => 0, 'longitude' => 1],
             '1, 1',
-            'key' => array(1, 0)
-        );
+            'key' => [1, 0],
+        ];
 
         $polygon = new Polygon($points);
 
@@ -23,9 +27,10 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructorThrowsExceptionForInvalidLatLng()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Cannot normalize LatLng from input "foo".');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot normalize LatLng from input "foo".');
 
-        new Polygon(array('foo'));
+        new Polygon(['foo']);
     }
 
     public function testIsClose()
@@ -34,34 +39,34 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($polygon->isClosed());
 
-        $polygon = new Polygon(array(
-            new LatLng(0, 0),
-            new LatLng(0, 1),
-            new LatLng(1, 1),
-            new LatLng(1, 0)
-        ));
-
-        $this->assertFalse($polygon->isClosed());
-
-        $polygon = new Polygon(array(
+        $polygon = new Polygon([
             new LatLng(0, 0),
             new LatLng(0, 1),
             new LatLng(1, 1),
             new LatLng(1, 0),
-            new LatLng(0, 0)
-        ));
+        ]);
+
+        $this->assertFalse($polygon->isClosed());
+
+        $polygon = new Polygon([
+            new LatLng(0, 0),
+            new LatLng(0, 1),
+            new LatLng(1, 1),
+            new LatLng(1, 0),
+            new LatLng(0, 0),
+        ]);
 
         $this->assertTrue($polygon->isClosed());
     }
 
     public function testCloseOpenPolygon()
     {
-        $polygon = new Polygon(array(
+        $polygon = new Polygon([
             new LatLng(0, 0),
             new LatLng(0, 1),
             new LatLng(1, 1),
-            new LatLng(1, 0)
-        ));
+            new LatLng(1, 0),
+        ]);
 
         $closedPolygon = $polygon->close();
 
@@ -79,13 +84,13 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testCloseAlreadyClosedPolygon()
     {
-        $polygon = new Polygon(array(
+        $polygon = new Polygon([
             new LatLng(0, 0),
             new LatLng(0, 1),
             new LatLng(1, 1),
             new LatLng(1, 0),
-            new LatLng(0, 0)
-        ));
+            new LatLng(0, 0),
+        ]);
 
         $closedPolygon = $polygon->close();
 
@@ -104,162 +109,163 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function containsDataProvider()
     {
-        return array(
+        return [
             // Closed counterclockwise polygons
-            array(
-                array(
-                    array('lng' => 0, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 0)
-                ),
-                array('lng' => 0.5, 'lat' => 0.5),
-                true
-            ),
-            array(
-                array(
-                    array('lng' => 0, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 0)
-                ),
-                array('lng' => 1.5, 'lat' => 0.5),
-                false
-            ),
-            array(
-                array(
-                    array('lng' => 0, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 0)
-                ),
-                array('lng' => -0.5, 'lat' => 0.5),
-                false
-            ),
-            array(
-                array(
-                    array('lng' => 0, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 0)
-                ),
-                array('lng' => 0.5, 'lat' => 1.5),
-                false
-            ),
-            array(
-                array(
-                    array('lng' => 0, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 0)
-                ),
-                array('lng' => 0.5, 'lat' => -0.5),
-                false
-            ),
+            [
+                [
+                    ['lng' => 0, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 0],
+                ],
+                ['lng' => 0.5, 'lat' => 0.5],
+                true,
+            ],
+            [
+                [
+                    ['lng' => 0, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 0],
+                ],
+                ['lng' => 1.5, 'lat' => 0.5],
+                false,
+            ],
+            [
+                [
+                    ['lng' => 0, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 0],
+                ],
+                ['lng' => -0.5, 'lat' => 0.5],
+                false,
+            ],
+            [
+                [
+                    ['lng' => 0, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 0],
+                ],
+                ['lng' => 0.5, 'lat' => 1.5],
+                false,
+            ],
+            [
+                [
+                    ['lng' => 0, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 0],
+                ],
+                ['lng' => 0.5, 'lat' => -0.5],
+                false,
+            ],
 
             // Closed clockwise polygons
-            array(
-                array(
-                    array('lng' => 0, 'lat' => 0),
-                    array('lng' => 1, 'lat' => 0),
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 0, 'lat' => 1),
-                    array('lng' => 0, 'lat' => 0)
-                ),
-                array('lng' => 0.5, 'lat' => 0.5),
-                true
-            ),
-            array(
-                array(
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 3, 'lat' => 2),
-                    array('lng' => 2, 'lat' => 3),
-                    array('lng' => 1, 'lat' => 1)
-                ),
-                array('lng' => 1.5, 'lat' => 1.5),
-                true
-            ),
+            [
+                [
+                    ['lng' => 0, 'lat' => 0],
+                    ['lng' => 1, 'lat' => 0],
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 0, 'lat' => 1],
+                    ['lng' => 0, 'lat' => 0],
+                ],
+                ['lng' => 0.5, 'lat' => 0.5],
+                true,
+            ],
+            [
+                [
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 3, 'lat' => 2],
+                    ['lng' => 2, 'lat' => 3],
+                    ['lng' => 1, 'lat' => 1],
+                ],
+                ['lng' => 1.5, 'lat' => 1.5],
+                true,
+            ],
 
             // Open counterclockwise polygons
-            array(
-                array(
-                    array('lng' => 0, 'lat' => 0),
-                    array('lng' => 0, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 1, 'lat' => 0)
-                ),
-                array('lng' => 0.5, 'lat' => 0.5),
-                true
-            ),
+            [
+                [
+                    ['lng' => 0, 'lat' => 0],
+                    ['lng' => 0, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 1, 'lat' => 0],
+                ],
+                ['lng' => 0.5, 'lat' => 0.5],
+                true,
+            ],
 
             // Open clockwise polygons
-            array(
-                array(
-                    array('lng' => 0, 'lat' => 0),
-                    array('lng' => 1, 'lat' => 0),
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 0, 'lat' => 1)
-                ),
-                array('lng' => 0.5, 'lat' => 0.5),
-                true
-            ),
-            array(
-                array(
-                    array('lng' => 1, 'lat' => 1),
-                    array('lng' => 3, 'lat' => 2),
-                    array('lng' => 2, 'lat' => 3)
-                ),
-                array('lng' => 1.5, 'lat' => 1.5),
-                true
-            ),
+            [
+                [
+                    ['lng' => 0, 'lat' => 0],
+                    ['lng' => 1, 'lat' => 0],
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 0, 'lat' => 1],
+                ],
+                ['lng' => 0.5, 'lat' => 0.5],
+                true,
+            ],
+            [
+                [
+                    ['lng' => 1, 'lat' => 1],
+                    ['lng' => 3, 'lat' => 2],
+                    ['lng' => 2, 'lat' => 3],
+                ],
+                ['lng' => 1.5, 'lat' => 1.5],
+                true,
+            ],
 
             // Empty polygon
-            array(
-                array(),
-                array('lng' => 0.5, 'lat' => 0.5),
-                false
-            ),
+            [
+                [],
+                ['lng' => 0.5, 'lat' => 0.5],
+                false,
+            ],
 
             // Assoc polygon
-            array(
-                array(
-                    'polygon1' => array('lng' => 1, 'lat' => 1),
-                    'polygon2' => array('lng' => 3, 'lat' => 2),
-                    'polygon3' => array('lng' => 2, 'lat' => 3)
-                ),
-                array('lng' => 1.5, 'lat' => 1.5),
-                true
-            ),
-        );
+            [
+                [
+                    'polygon1' => ['lng' => 1, 'lat' => 1],
+                    'polygon2' => ['lng' => 3, 'lat' => 2],
+                    'polygon3' => ['lng' => 2, 'lat' => 3],
+                ],
+                ['lng' => 1.5, 'lat' => 1.5],
+                true,
+            ],
+        ];
     }
 
     public function testToBounds()
     {
-        $points = array(
+        $points = [
             new LatLng(0, 0),
             new LatLng(0, 1),
             new LatLng(1, 1),
-            new LatLng(1, 0)
-        );
+            new LatLng(1, 0),
+        ];
 
         $polygon = new Polygon($points);
 
         $bounds = $polygon->toBounds();
 
         $this->assertEquals(0, $bounds->getSouthWest()->getLatitude());
-        $this->assertEquals(0,  $bounds->getSouthWest()->getLongitude());
+        $this->assertEquals(0, $bounds->getSouthWest()->getLongitude());
         $this->assertEquals(1, $bounds->getNorthEast()->getLatitude());
-        $this->assertEquals(1,  $bounds->getNorthEast()->getLongitude());
+        $this->assertEquals(1, $bounds->getNorthEast()->getLongitude());
     }
 
     public function testToBoundsThrowsExceptionForEmptyPolygon()
     {
-        $this->setExpectedException('\LogicException', 'Cannot create Bounds from empty Polygon.');
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Cannot create Bounds from empty Polygon.');
 
         $polygon = new Polygon();
 
@@ -268,9 +274,9 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testArrayAccessNumeric()
     {
-        $points = array(
-            new LatLng(0, 0)
-        );
+        $points = [
+            new LatLng(0, 0),
+        ];
 
         $polygon = new Polygon($points);
 
@@ -281,9 +287,9 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testArrayAccessAssoc()
     {
-        $points = array(
-            'key' => new LatLng(0, 0)
-        );
+        $points = [
+            'key' => new LatLng(0, 0),
+        ];
 
         $polygon = new Polygon($points);
 
@@ -294,7 +300,8 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetGetThrowsExceptionForInvalidKey()
     {
-        $this->setExpectedException('\InvalidArgumentException', 'Invalid offset 0.');
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid offset 0.');
 
         $polygon = new Polygon();
 
@@ -303,11 +310,11 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetSetThrowsException()
     {
-        $this->setExpectedException('\BadMethodCallException');
+        $this->expectException(\BadMethodCallException::class);
 
-        $points = array(
-            new LatLng(0, 0)
-        );
+        $points = [
+            new LatLng(0, 0),
+        ];
 
         $polygon = new Polygon($points);
 
@@ -316,11 +323,11 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetUnsetThrowsException()
     {
-        $this->setExpectedException('\BadMethodCallException');
+        $this->expectException(\BadMethodCallException::class);
 
-        $points = array(
-            new LatLng(0, 0)
-        );
+        $points = [
+            new LatLng(0, 0),
+        ];
 
         $polygon = new Polygon($points);
 
@@ -329,9 +336,9 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testCountable()
     {
-        $points = array(
-            new LatLng(0, 0)
-        );
+        $points = [
+            new LatLng(0, 0),
+        ];
 
         $polygon = new Polygon($points);
 
@@ -340,9 +347,11 @@ class PolygonTest extends \PHPUnit_Framework_TestCase
 
     public function testIteratorAggregate()
     {
-        $points = array(
-            new LatLng(0, 0)
-        );
+        $this->expectNotToPerformAssertions();
+
+        $points = [
+            new LatLng(0, 0),
+        ];
 
         $polygon = new Polygon($points);
 
